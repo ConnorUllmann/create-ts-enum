@@ -1,0 +1,11 @@
+{
+  "name": "@cullmann/create-ts-enum",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
