@@ -18,6 +18,13 @@ describe('CreateEnum', () => {
       )
     })
 
+    itTypes('no matching keys in the same entry', () => {
+      CreateEnum(
+        //@ts-expect-error Can't have the same key twice in the same entry
+        { A: 'a', A: 'a2' },
+      )
+    })
+
     itTypes('no matching keys in different entries', () => {
       CreateEnum(
         //@ts-expect-error Can't have the same key in two different entries
@@ -65,9 +72,12 @@ describe('CreateEnum', () => {
   describe('Enum', () => {
     it('accurately reflects names and values in config', () => {
       const { Enum } = CreateBasicEnum();
-      expect(Enum.A).toEqual('a')
-      expect(Enum.B).toEqual('b')
-      expect(Enum.C).toEqual('c')
+      
+      expect(Enum).toEqual({
+        A: 'a',
+        B: 'b',
+        C: 'c'
+      })
     })
 
     it('accurately reflects names and values in config with aliases', () => {
@@ -76,11 +86,13 @@ describe('CreateEnum', () => {
         { B: 'b', },
         { C: 'c', c: 'c' }
       )
-      expect(Enum.A).toEqual('a')
-      expect(Enum.A2).toEqual('a')
-      expect(Enum.B).toEqual('b')
-      expect(Enum.C).toEqual('c')
-      expect(Enum.c).toEqual('c')
+      expect(Enum).toEqual({
+        A: 'a',
+        A2: 'a',
+        B: 'b',
+        C: 'c',
+        c: 'c',
+      })
     })
   });
 
@@ -123,47 +135,48 @@ describe('CreateEnum', () => {
         const { Enum, CreateSubset } = CreateBasicEnum();
         const { Enum: EnumSubset } = CreateSubset(Enum.A, Enum.B, Enum.C);
 
-        expect(EnumSubset.A).toEqual(Enum.A);
-        expect(EnumSubset.B).toEqual(Enum.B);
-        expect(EnumSubset.C).toEqual(Enum.C);
+        expect(EnumSubset).toEqual({
+          A: 'a',
+          B: 'b',
+          C: 'c'
+        })
       })
+
       it('can still create full mapping when values are provided in an alternate order', () => {
         const { Enum, CreateSubset } = CreateBasicEnum();
         const { Enum: EnumSubset } = CreateSubset(Enum.A, Enum.C, Enum.B);
 
-        expect(EnumSubset.A).toEqual(Enum.A);
-        expect(EnumSubset.B).toEqual(Enum.B);
-        expect(EnumSubset.C).toEqual(Enum.C);
+        expect(EnumSubset).toEqual({
+          A: 'a',
+          B: 'b',
+          C: 'c'
+        })
       })
+
       it('can create partial mapping to match partial subset', () => {
         const { Enum, CreateSubset } = CreateBasicEnum();
         const { Enum: EnumSubset } = CreateSubset(Enum.A, Enum.C);
-
-        expect(EnumSubset.A).toEqual(Enum.A);
-        //@ts-expect-error "B" key & value has been omitted
-        expect(EnumSubset.B).toEqual(undefined);
-        expect(EnumSubset.C).toEqual(Enum.C);
+        
+        expect(EnumSubset).toEqual({
+          A: 'a',
+          C: 'c'
+        })
       })
+
       it('can create partial mapping to match singleton subset', () => {
         const { Enum, CreateSubset } = CreateBasicEnum();
         const { Enum: EnumSubset } = CreateSubset(Enum.A);
-
-        expect(EnumSubset.A).toEqual(Enum.A);
-        //@ts-expect-error "B" key & value has been omitted
-        expect(EnumSubset.B).toEqual(undefined);
-        //@ts-expect-error "C" key & value has been omitted
-        expect(EnumSubset.C).toEqual(undefined);
+        
+        expect(EnumSubset).toEqual({
+          A: 'a',
+        })
       })
+
       it('can create empty mapping to match empty subset', () => {
         const { CreateSubset } = CreateBasicEnum();
         const { Enum: EnumSubset } = CreateSubset();
-
-        //@ts-expect-error "A" key & value has been omitted
-        expect(EnumSubset.A).toEqual(undefined);
-        //@ts-expect-error "B" key & value has been omitted
-        expect(EnumSubset.B).toEqual(undefined);
-        //@ts-expect-error "C" key & value has been omitted
-        expect(EnumSubset.C).toEqual(undefined);
+        
+        expect(EnumSubset).toEqual({})
       })
     })
 
@@ -174,24 +187,28 @@ describe('CreateEnum', () => {
         const { List } = CreateSubset(Enum.A, Enum.B, Enum.C);
         expect(List).toEqual([Enum.A, Enum.B, Enum.C])
       })
+
       it('can create full set in alternate order', () => {
         const { Enum, CreateSubset } = CreateBasicEnum();
       
         const { List } = CreateSubset(Enum.A, Enum.C, Enum.B);
         expect(List).toEqual([Enum.A, Enum.C, Enum.B])
       })
+
       it('can create partial subset', () => {
         const { Enum, CreateSubset } = CreateBasicEnum();
       
         const { List } = CreateSubset(Enum.A, Enum.C);
         expect(List).toEqual([Enum.A, Enum.C])
       })
+
       it('can create singleton subset', () => {
         const { Enum, CreateSubset } = CreateBasicEnum();
       
         const { List } = CreateSubset(Enum.A);
         expect(List).toEqual([Enum.A])
       })
+
       it('can create empty subset', () => {
         const { CreateSubset } = CreateBasicEnum();
       
@@ -425,25 +442,73 @@ describe('CreateEnum', () => {
       CreateComplementSubset(Enum.A, Enum.A);
     })
 
-    it('can create full set in same order', () => {
-      const { Enum, CreateComplementSubset } = CreateBasicEnum();
-      const { List } = CreateComplementSubset()
+    describe('Enum', () => {
+      it('can create empty mapping when values are provided in the same order', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { Enum: EnumSubset } = CreateComplementSubset(Enum.A, Enum.B, Enum.C);
+        
+        expect(EnumSubset).toEqual({})
+      })
 
-      expect(List).toEqual([Enum.A, Enum.B, Enum.C])
+      it('can create empty mapping when values are provided in an alternate order', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { Enum: EnumSubset } = CreateComplementSubset(Enum.A, Enum.C, Enum.B);
+        
+        expect(EnumSubset).toEqual({})
+      })
+
+      it('can create partial mapping to match partial subset', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { Enum: EnumSubset } = CreateComplementSubset(Enum.A, Enum.C);
+        
+        expect(EnumSubset).toEqual({
+          B: 'b',
+        })
+      })
+
+      it('can create partial mapping to match singleton subset', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { Enum: EnumSubset } = CreateComplementSubset(Enum.A);
+        
+        expect(EnumSubset).toEqual({
+          B: 'b',
+          C: 'c'
+        })
+      })
+
+      it('can create empty mapping to match empty subset', () => {
+        const { CreateComplementSubset } = CreateBasicEnum();
+        const { Enum: EnumSubset } = CreateComplementSubset();
+        
+        expect(EnumSubset).toEqual({
+          A: 'a',
+          B: 'b',
+          C: 'c'
+        })
+      })
     })
 
-    it('can create partial subset', () => {
-      const { Enum, CreateComplementSubset } = CreateBasicEnum();
-      const { List } = CreateComplementSubset(Enum.A, Enum.B)
-
-      expect(List).toEqual([Enum.C])
-    })
-
-    it('can create empty set', () => {
-      const { Enum, CreateComplementSubset } = CreateBasicEnum();
-      const { List } = CreateComplementSubset(Enum.A, Enum.B, Enum.C)
-
-      expect(List).toEqual([])
+    describe('List', () => {
+      it('can create full set in same order', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { List } = CreateComplementSubset()
+  
+        expect(List).toEqual([Enum.A, Enum.B, Enum.C])
+      })
+  
+      it('can create partial subset', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { List } = CreateComplementSubset(Enum.A, Enum.B)
+  
+        expect(List).toEqual([Enum.C])
+      })
+  
+      it('can create empty set', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { List } = CreateComplementSubset(Enum.A, Enum.B, Enum.C)
+  
+        expect(List).toEqual([])
+      })
     })
   })
 
@@ -480,18 +545,20 @@ describe('CreateEnum', () => {
       );
     })
 
-    it('can create full set in same order', () => {
-      const { Enum, CreateOrdering } = CreateBasicEnum();
-    
-      const { List } = CreateOrdering(Enum.A, Enum.B, Enum.C);
-      expect(List).toEqual([Enum.A, Enum.B, Enum.C])
-    })
-
-    it('can create full set in alternate order', () => {
-      const { Enum, CreateOrdering } = CreateBasicEnum();
-    
-      const { List } = CreateOrdering(Enum.A, Enum.C, Enum.B);
-      expect(List).toEqual([Enum.A, Enum.C, Enum.B])
+    describe('List', ()  => {
+      it('can create full set in same order', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+      
+        const { List } = CreateOrdering(Enum.A, Enum.B, Enum.C);
+        expect(List).toEqual([Enum.A, Enum.B, Enum.C])
+      })
+  
+      it('can create full set in alternate order', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+      
+        const { List } = CreateOrdering(Enum.A, Enum.C, Enum.B);
+        expect(List).toEqual([Enum.A, Enum.C, Enum.B])
+      })
     })
   })
 
