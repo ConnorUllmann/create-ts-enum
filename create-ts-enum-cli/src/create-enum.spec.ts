@@ -10,54 +10,57 @@ function CreateBasicEnum() {
 }
 
 describe('CreateEnum', () => {
-  itTypes('aliases must have same value', () => {
-    CreateEnum(
-      //@ts-expect-error Values must be the same for a single entry
-      { A: 'a', A2: 'a2' }
-    )
-  })
+  describe('argument validity checks', () => {
+    itTypes('aliases must have same value', () => {
+      CreateEnum(
+        //@ts-expect-error Values must be the same for a single entry
+        { A: 'a', A2: 'a2' }
+      )
+    })
 
-  itTypes('No matching keys in different entries', () => {
-    CreateEnum(
-      //@ts-expect-error Can't have the same key in two different entries
-      { A: 'a' },
-      { A: 'b' }
-    )
-  })
+    itTypes('no matching keys in different entries', () => {
+      CreateEnum(
+        //@ts-expect-error Can't have the same key in two different entries
+        { A: 'a' },
+        { A: 'b' }
+      )
+    })
 
-  itTypes('No matching values in different entries', () => {
-    CreateEnum(
-      //@ts-expect-error Can't have the same value in two different entries
-      { A: 'a' },
-      { B: 'a' }
-    )
-  })
+    itTypes('no matching values in different entries', () => {
+      CreateEnum(
+        //@ts-expect-error Can't have the same value in two different entries
+        { A: 'a' },
+        { B: 'a' }
+      )
+    })
 
-  itTypes('No matching keys & values in different entries', () => {
-    CreateEnum(
-      //@ts-expect-error Can't have the same key & value in two different entries
-      { A: 'a' },
-      { A: 'a' }
-    )
-  })
-  itTypes('Enum type enforces value constraint', () => {
-    const { Enum, List } = CreateEnum(
-      { A: 'a' },
-      { B: 'b' },
-      { C: 'c' }
-    );
-    type Enum = typeof List[number];
+    itTypes('no matching keys & values in different entries', () => {
+      CreateEnum(
+        //@ts-expect-error Can't have the same key & value in two different entries
+        { A: 'a' },
+        { A: 'a' }
+      )
+    })
 
-    const a: Enum = Enum.A;
-    const b: Enum = Enum.B;
-    const c: Enum = Enum.C;
+    itTypes('enum type enforces value constraint', () => {
+      const { Enum, List } = CreateEnum(
+        { A: 'a' },
+        { B: 'b' },
+        { C: 'c' }
+      );
+      type Enum = typeof List[number];
 
-    // ensure variables are "used"
-    a, b, c;
+      const a: Enum = Enum.A;
+      const b: Enum = Enum.B;
+      const c: Enum = Enum.C;
 
-    //@ts-expect-error Cannot assign non-enum value to enum type.
-    const d: Enum = 'd';
-  })
+      // ensure variables are "used"
+      a, b, c;
+
+      //@ts-expect-error Cannot assign non-enum value to enum type.
+      const d: Enum = 'd';
+    })
+  });
 
   describe('Enum', () => {
     it('accurately reflects names and values in config', () => {
@@ -206,6 +209,8 @@ describe('CreateEnum', () => {
         CreateSubsetInner(Enum.A, Enum.B, 'c');
         //@ts-expect-error Entry is not a part of the parent subset
         CreateSubsetInner(Enum.A, Enum.C);
+        //@ts-expect-error Cannot provide the same entry twice
+        CreateSubsetInner(Enum.A, Enum.A);
       })
 
       it('can create full set in same order', () => {
@@ -215,6 +220,7 @@ describe('CreateEnum', () => {
 
         expect(List).toEqual([Enum.A, Enum.B])
       })
+
       it('can create full set in alternate order', () => {
         const { Enum, CreateSubset } = CreateBasicEnum();
         const { CreateSubset: CreateSubsetInner } = CreateSubset(Enum.A, Enum.B);
@@ -222,6 +228,7 @@ describe('CreateEnum', () => {
 
         expect(List).toEqual([Enum.B, Enum.A])
       })
+
       it('can create partial subset', () => {
         const { Enum, CreateSubset } = CreateBasicEnum();
         const { CreateSubset: CreateSubsetInner } = CreateSubset(Enum.A, Enum.B);
@@ -229,6 +236,119 @@ describe('CreateEnum', () => {
 
         expect(List).toEqual([Enum.B])
       })
+    })
+
+    describe('CreateComplementSubset', () => {
+      itTypes('cannot create subset with invalid values', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { CreateComplementSubset: CreateComplementSubsetInner } = CreateSubset(Enum.A, Enum.B);
+        
+        //@ts-expect-error Unrecognized entry
+        CreateComplementSubsetInner('c');
+        //@ts-expect-error Entry is not a part of the parent subset
+        CreateComplementSubsetInner(Enum.A, Enum.C);
+      })
+
+      it('can create full set in same order', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { CreateComplementSubset: CreateComplementSubsetInner } = CreateSubset(Enum.A, Enum.B);
+        const { List } = CreateComplementSubsetInner();
+
+        expect(List).toEqual([Enum.A, Enum.B])
+      })
+
+      it('can create partial subset', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { CreateComplementSubset: CreateComplementSubsetInner } = CreateSubset(Enum.A, Enum.B);
+        const { List } = CreateComplementSubsetInner(Enum.B);
+
+        expect(List).toEqual([Enum.A])
+      })
+
+      it('can create empty set', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { CreateComplementSubset: CreateComplementSubsetInner } = CreateSubset(Enum.A, Enum.B);
+        const { List } = CreateComplementSubsetInner(Enum.A, Enum.B);
+
+        expect(List).toEqual([])
+      })
+    })
+
+    describe('CreateOrdering', () => {
+      itTypes('only allows valid arguments', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { CreateOrdering } = CreateSubset(Enum.A, Enum.B);
+      
+        //@ts-expect-error Too few entries
+        CreateOrdering(Enum.A);
+        //@ts-expect-error No entries
+        CreateOrdering();
+        //@ts-expect-error Duplicate entries and too many entries
+        CreateOrdering(Enum.A, Enum.B, Enum.B);
+        //@ts-expect-error Duplicate entries
+        CreateOrdering(Enum.A, Enum.A);
+        //@ts-expect-error Unrecognized entry
+        CreateOrdering(Enum.A, 'N');
+        //@ts-expect-error Unrecognized entry but all other values present
+        CreateOrdering(Enum.A, 'N', Enum.B);
+        CreateOrdering(
+          Enum.A,
+          Enum.A,
+          //@ts-expect-error Too many entries at correct index
+          Enum.A,
+          Enum.B,
+          Enum.B,
+          Enum.A,
+          Enum.B,
+        );
+      })
+  
+      it('can create full set in same order', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { CreateOrdering } = CreateSubset(Enum.A, Enum.B);
+      
+        const { List } = CreateOrdering(Enum.A, Enum.B);
+        expect(List).toEqual([Enum.A, Enum.B])
+      })
+      it('can create full set in alternate order', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { CreateOrdering } = CreateSubset(Enum.A, Enum.B);
+      
+        const { List } = CreateOrdering(Enum.B, Enum.A);
+        expect(List).toEqual([Enum.B, Enum.A])
+      })
+    })
+  })
+
+  describe('CreateComplementSubset', () => {
+    itTypes('cannot create subset with invalid values', () => {
+      const { Enum, CreateComplementSubset } = CreateBasicEnum();
+      
+      //@ts-expect-error Unrecognized entry
+      CreateComplementSubset('d');
+      //@ts-expect-error Cannot provide the same entry twice
+      CreateComplementSubset(Enum.A, Enum.A);
+    })
+
+    it('can create full set in same order', () => {
+      const { Enum, CreateComplementSubset } = CreateBasicEnum();
+      const { List } = CreateComplementSubset()
+
+      expect(List).toEqual([Enum.A, Enum.B, Enum.C])
+    })
+
+    it('can create partial subset', () => {
+      const { Enum, CreateComplementSubset } = CreateBasicEnum();
+      const { List } = CreateComplementSubset(Enum.A, Enum.B)
+
+      expect(List).toEqual([Enum.C])
+    })
+
+    it('can create empty set', () => {
+      const { Enum, CreateComplementSubset } = CreateBasicEnum();
+      const { List } = CreateComplementSubset(Enum.A, Enum.B, Enum.C)
+
+      expect(List).toEqual([])
     })
   })
 
@@ -264,13 +384,14 @@ describe('CreateEnum', () => {
         Enum.C,
       );
     })
-    
+
     it('can create full set in same order', () => {
       const { Enum, CreateOrdering } = CreateBasicEnum();
     
       const { List } = CreateOrdering(Enum.A, Enum.B, Enum.C);
       expect(List).toEqual([Enum.A, Enum.B, Enum.C])
     })
+    
     it('can create full set in alternate order', () => {
       const { Enum, CreateOrdering } = CreateBasicEnum();
     
