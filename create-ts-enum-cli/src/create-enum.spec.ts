@@ -516,6 +516,44 @@ describe('CreateEnum', () => {
       })
     })
 
+    describe('CreateSubset', () => {
+      itTypes('cannot create subset with invalid values', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { CreateComplementSubset } = CreateSubset(Enum.A, Enum.B);
+        
+        //@ts-expect-error Unrecognized entry
+        CreateComplementSubset(Enum.A, Enum.B, 'c');
+        //@ts-expect-error Entry is not a part of the parent subset
+        CreateComplementSubset(Enum.A, Enum.C);
+        //@ts-expect-error Cannot provide the same entry twice
+        CreateComplementSubset(Enum.A, Enum.A);
+      })
+
+      it('can create an empty complement to a full set in same order', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { CreateComplementSubset } = CreateSubset(Enum.A, Enum.B);
+        const { List } = CreateComplementSubset(Enum.A, Enum.B);
+
+        expect(List).toEqual([])
+      })
+
+      it('can create an empty complement to a full set in alternate order', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { CreateComplementSubset } = CreateSubset(Enum.A, Enum.B);
+        const { List } = CreateComplementSubset(Enum.B, Enum.A);
+
+        expect(List).toEqual([])
+      })
+
+      it('can create partial subset', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { CreateComplementSubset } = CreateSubset(Enum.A, Enum.B);
+        const { List } = CreateComplementSubset(Enum.B);
+
+        expect(List).toEqual([Enum.A])
+      })
+    })
+
     describe('TypeGuard', () => {
       itTypes('validates to work correctly', () => {
         const { Enum, CreateComplementSubset } = CreateBasicEnum();
@@ -667,6 +705,42 @@ describe('CreateEnum', () => {
       
         const { List } = CreateOrdering(Enum.A, Enum.C, Enum.B);
         expect(List).toEqual([Enum.A, Enum.C, Enum.B])
+      })
+    })
+
+    describe('CreateSubset', () => {
+      itTypes('cannot create subset with invalid values', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { CreateSubset } = CreateOrdering(Enum.A, Enum.C, Enum.B);
+        
+        //@ts-expect-error Unrecognized entry
+        CreateSubset(Enum.A, Enum.B, 'd');
+        //@ts-expect-error Cannot provide the same entry twice
+        CreateSubset(Enum.A, Enum.A);
+      })
+
+      it('can create full set in same order', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { CreateSubset } = CreateOrdering(Enum.A, Enum.C, Enum.B);
+        const { List } = CreateSubset(Enum.A, Enum.C, Enum.B);
+
+        expect(List).toEqual([Enum.A, Enum.C, Enum.B])
+      })
+
+      it('can create full set in alternate order', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { CreateSubset } = CreateOrdering(Enum.A, Enum.C, Enum.B);
+        const { List } = CreateSubset(Enum.C, Enum.B, Enum.A);
+
+        expect(List).toEqual([Enum.C, Enum.B, Enum.A])
+      })
+
+      it('can create partial subset', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { CreateSubset } = CreateOrdering(Enum.A, Enum.C, Enum.B);
+        const { List } = CreateSubset(Enum.C, Enum.A);
+
+        expect(List).toEqual([Enum.C, Enum.A])
       })
     })
 
