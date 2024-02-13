@@ -264,6 +264,8 @@ describe('CreateEnum', () => {
         CreateComplementSubsetInner('c');
         //@ts-expect-error Entry is not a part of the parent subset
         CreateComplementSubsetInner(Enum.A, Enum.C);
+        //@ts-expect-error Entry is duplicated
+        CreateComplementSubsetInner(Enum.B, Enum.B);
       })
 
       it('can create full set in same order', () => {
@@ -554,6 +556,44 @@ describe('CreateEnum', () => {
       })
     })
 
+    describe('CreateComplementSubset', () => {
+      itTypes('cannot create subset with invalid values', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { CreateComplementSubset: CreateComplementSubsetInner } = CreateComplementSubset(Enum.A, Enum.B);
+        
+        //@ts-expect-error Unrecognized entry
+        CreateComplementSubsetInner('d');
+        //@ts-expect-error Entry is not a part of the parent subset
+        CreateComplementSubsetInner(Enum.A, Enum.C);
+        //@ts-expect-error Entry is duplicated
+        CreateComplementSubsetInner(Enum.C, Enum.C);
+      })
+
+      it('can create full complement set', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { CreateComplementSubset: CreateComplementSubsetInner } = CreateComplementSubset(Enum.A, Enum.B);
+        const { List } = CreateComplementSubsetInner();
+
+        expect(List).toEqual([Enum.C])
+      })
+
+      it('can create partial complement subset', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { CreateComplementSubset: CreateComplementSubsetInner } = CreateComplementSubset(Enum.A);
+        const { List } = CreateComplementSubsetInner(Enum.C);
+
+        expect(List).toEqual([Enum.B])
+      })
+
+      it('can create empty set', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { CreateComplementSubset: CreateComplementSubsetInner } = CreateComplementSubset(Enum.A, Enum.B);
+        const { List } = CreateComplementSubsetInner(Enum.C);
+
+        expect(List).toEqual([])
+      })
+    })
+
     describe('TypeGuard', () => {
       itTypes('validates to work correctly', () => {
         const { Enum, CreateComplementSubset } = CreateBasicEnum();
@@ -741,6 +781,42 @@ describe('CreateEnum', () => {
         const { List } = CreateSubset(Enum.C, Enum.A);
 
         expect(List).toEqual([Enum.C, Enum.A])
+      })
+    })
+
+    describe('CreateComplementSubset', () => {
+      itTypes('cannot create subset with invalid values', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { CreateComplementSubset: CreateComplementSubsetInner } = CreateOrdering(Enum.A, Enum.C, Enum.B);
+        
+        //@ts-expect-error Unrecognized entry
+        CreateComplementSubsetInner('d');
+        //@ts-expect-error Entry is duplicated
+        CreateComplementSubsetInner(Enum.B, Enum.B);
+      })
+
+      it('can create full set in same order', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { CreateComplementSubset: CreateComplementSubsetInner } = CreateOrdering(Enum.A, Enum.B, Enum.C);
+        const { List } = CreateComplementSubsetInner();
+
+        expect(List).toEqual([Enum.A, Enum.B, Enum.C])
+      })
+
+      it('can create partial subset', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { CreateComplementSubset: CreateComplementSubsetInner } = CreateOrdering(Enum.A, Enum.C, Enum.B);
+        const { List } = CreateComplementSubsetInner(Enum.B);
+
+        expect(List).toEqual([Enum.A, Enum.C])
+      })
+
+      it('can create empty set', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { CreateComplementSubset: CreateComplementSubsetInner } = CreateOrdering(Enum.A, Enum.C, Enum.B);
+        const { List } = CreateComplementSubsetInner(Enum.A, Enum.B, Enum.C);
+
+        expect(List).toEqual([])
       })
     })
 
