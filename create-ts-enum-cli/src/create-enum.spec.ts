@@ -564,6 +564,37 @@ describe('CreateEnum', () => {
         expect(TypeGuard('test')).toEqual(false);
       })
     })
+
+    describe('IndexByValue', () => {
+      itTypes('validate number types', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { Enum: EnumSubset, List, IndexByValue } = CreateComplementSubset(Enum.A, Enum.C);
+        type EnumSubset = typeof List[number];
+  
+        //@ts-expect-error Disallow invalid number assignment
+        const x: typeof IndexByValue[EnumSubset] = 3;
+  
+        type BIndex = typeof IndexByValue['b'];
+        // Ensure assignment works for correct number
+        const test0: BIndex = 0;
+        test0; // "use" variable
+        //@ts-expect-error Valid index in original enum but not in complement
+        const test1: BIndex = 1;
+  
+        //@ts-expect-error Must pass value from enum subset
+        IndexByValue['a']
+      })
+  
+      it('ensure indices match value index in List', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { Enum: EnumSubset, IndexByValue } = CreateComplementSubset(Enum.A);
+  
+        expect(IndexByValue).toEqual({
+          [EnumSubset.B]: 0,
+          [EnumSubset.C]: 1,
+        })
+      })
+    })
   })
 
   describe('CreateOrdering', () => {
@@ -675,6 +706,38 @@ describe('CreateEnum', () => {
         expect(TypeGuard(Enum.B)).toEqual(true);
         expect(TypeGuard(Enum.C)).toEqual(true);
         expect(TypeGuard('test')).toEqual(false);
+      })
+    })
+
+    describe('IndexByValue', () => {
+      itTypes('validate number types', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { Enum: EnumSubset, List, IndexByValue } = CreateOrdering(Enum.A, Enum.B, Enum.C);
+        type EnumSubset = typeof List[number];
+  
+        //@ts-expect-error Disallow invalid number assignment
+        const x: typeof IndexByValue[EnumSubset] = 3;
+  
+        type CIndex = typeof IndexByValue['c'];
+        // Ensure assignment works for correct number
+        const test2: CIndex = 2;
+        test2; // "use" variable
+        //@ts-expect-error Invalid index for 'c' but valid for 'a'
+        const test0: CIndex = 0;
+  
+        //@ts-expect-error Must pass value from enum
+        IndexByValue['d']
+      })
+  
+      it('ensure indices match value index in List', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { Enum: EnumSubset, IndexByValue } = CreateOrdering(Enum.A, Enum.C, Enum.B);
+  
+        expect(IndexByValue).toEqual({
+          [EnumSubset.A]: 0,
+          [EnumSubset.C]: 1,
+          [EnumSubset.B]: 2,
+        })
       })
     })
   })
