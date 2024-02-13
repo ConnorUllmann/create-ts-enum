@@ -1,5 +1,3 @@
-import { CreateEnum } from "./create-enum";
-
 type IsUnion<T, B = T> = T extends any ? ([B] extends [T] ? false : true) : never;
 
 type RemoveDuplicates<A extends PropertyKey, B extends PropertyKey, T> = T extends Record<A, B>
