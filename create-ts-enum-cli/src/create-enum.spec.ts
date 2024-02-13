@@ -329,6 +329,7 @@ describe('CreateEnum', () => {
         const { List } = CreateOrdering(Enum.A, Enum.B);
         expect(List).toEqual([Enum.A, Enum.B])
       })
+
       it('can create full set in alternate order', () => {
         const { Enum, CreateSubset } = CreateBasicEnum();
         const { CreateOrdering } = CreateSubset(Enum.A, Enum.B);
@@ -594,6 +595,50 @@ describe('CreateEnum', () => {
       })
     })
 
+    describe('CreateOrdering', () => {
+      itTypes('only allows valid arguments', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { CreateOrdering } = CreateComplementSubset(Enum.A, Enum.B);
+
+      
+        //@ts-expect-error No entries
+        CreateOrdering();
+        //@ts-expect-error Disallow elements outside of set
+        CreateOrdering(Enum.C, Enum.A);
+        //@ts-expect-error Duplicate entries and too many entries
+        CreateOrdering(Enum.C, Enum.C);
+        //@ts-expect-error Unrecognized entry
+        CreateOrdering('N');
+        //@ts-expect-error Unrecognized entry but all other values present
+        CreateOrdering(Enum.C, 'N');
+        CreateOrdering(
+          Enum.C,
+          //@ts-expect-error Too many entries at correct index
+          Enum.C,
+          Enum.C,
+          Enum.C,
+          Enum.C,
+          Enum.C
+        );
+      })
+  
+      it('can create full set in same order', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { CreateOrdering } = CreateComplementSubset(Enum.B);
+      
+        const { List } = CreateOrdering(Enum.A, Enum.C);
+        expect(List).toEqual([Enum.A, Enum.C])
+      })
+      
+      it('can create full set in alternate order', () => {
+        const { Enum, CreateComplementSubset } = CreateBasicEnum();
+        const { CreateOrdering } = CreateComplementSubset(Enum.B);
+      
+        const { List } = CreateOrdering(Enum.C, Enum.A);
+        expect(List).toEqual([Enum.C, Enum.A])
+      })
+    })
+
     describe('TypeGuard', () => {
       itTypes('validates to work correctly', () => {
         const { Enum, CreateComplementSubset } = CreateBasicEnum();
@@ -817,6 +862,53 @@ describe('CreateEnum', () => {
         const { List } = CreateComplementSubsetInner(Enum.A, Enum.B, Enum.C);
 
         expect(List).toEqual([])
+      })
+    })
+
+    describe('CreateOrdering', () => {
+      itTypes('only allows valid arguments', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { CreateOrdering: CreateOrderingInner } = CreateOrdering(Enum.A, Enum.C, Enum.B);
+      
+        //@ts-expect-error Too few entries
+        CreateOrderingInner(Enum.A);
+        //@ts-expect-error No entries
+        CreateOrderingInner();
+        //@ts-expect-error Duplicate entries and too many entries
+        CreateOrderingInner(Enum.A, Enum.B, Enum.B);
+        //@ts-expect-error Duplicate entries
+        CreateOrderingInner(Enum.A, Enum.A);
+        //@ts-expect-error Unrecognized entry
+        CreateOrderingInner(Enum.A, 'N');
+        //@ts-expect-error Unrecognized entry but all other values present
+        CreateOrderingInner(Enum.A, 'N', Enum.B);
+        CreateOrderingInner(
+          Enum.A,
+          Enum.A,
+          Enum.A,
+          //@ts-expect-error Too many entries at correct index
+          Enum.A,
+          Enum.B,
+          Enum.B,
+          Enum.A,
+          Enum.B,
+        );
+      })
+  
+      it('can create full set in same order', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { CreateOrdering: CreateOrderingInner } = CreateOrdering(Enum.A, Enum.B, Enum.C);
+      
+        const { List } = CreateOrderingInner(Enum.C, Enum.A, Enum.B);
+        expect(List).toEqual([Enum.C, Enum.A, Enum.B])
+      })
+      
+      it('can create full set in alternate order', () => {
+        const { Enum, CreateOrdering } = CreateBasicEnum();
+        const { CreateOrdering: CreateOrderingInner } = CreateOrdering(Enum.A, Enum.C, Enum.B);
+      
+        const { List } = CreateOrderingInner(Enum.B, Enum.A, Enum.C);
+        expect(List).toEqual([Enum.B, Enum.A, Enum.C])
       })
     })
 
