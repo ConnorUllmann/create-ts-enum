@@ -382,6 +382,37 @@ describe('CreateEnum', () => {
         expect(TypeGuard(Enum.C)).toEqual(false);
       })
     })
+
+    describe('IndexByValue', () => {
+      itTypes('validate number types', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { Enum: EnumSubset, List, IndexByValue } = CreateSubset(Enum.A, Enum.C);
+        type EnumSubset = typeof List[number];
+  
+        //@ts-expect-error Disallow invalid number assignment
+        const x: typeof IndexByValue[EnumSubset] = 3;
+  
+        type CIndex = typeof IndexByValue['c'];
+        // Ensure assignment works for correct number
+        const test1: CIndex = 1;
+        test1; // "use" variable
+        //@ts-expect-error Invalid index for 'b' but valid for 'a'
+        const test0: CIndex = 0;
+  
+        //@ts-expect-error Must pass value from enum subset
+        IndexByValue['b']
+      })
+  
+      it('ensure indices match value index in List', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+        const { Enum: EnumSubset, IndexByValue } = CreateSubset(Enum.A, Enum.C);
+  
+        expect(IndexByValue).toEqual({
+          [EnumSubset.A]: 0,
+          [EnumSubset.C]: 1,
+        })
+      })
+    })
   })
 
   describe('CreateComplementSubset', () => {
@@ -513,6 +544,36 @@ describe('CreateEnum', () => {
       expect(TypeGuard(Enum.A)).toEqual(false);
       expect(TypeGuard(Enum.B)).toEqual(false);
       expect(TypeGuard(Enum.C)).toEqual(false);
+    })
+  })
+
+  describe('IndexByValue', () => {
+    itTypes('validate number types', () => {
+      const { Enum, List, IndexByValue } = CreateBasicEnum();
+      type Enum = typeof List[number];
+
+      //@ts-expect-error Disallow invalid number assignment
+      const x: typeof IndexByValue[Enum] = 3;
+
+      type BIndex = typeof IndexByValue['b'];
+      // Ensure assignment works for correct number
+      const test1: BIndex = 1;
+      test1; // "use" variable
+      //@ts-expect-error Invalid index for 'b' but valid for 'a'
+      const test0: BIndex = 0;
+
+      //@ts-expect-error Must pass value from enum
+      IndexByValue['d']
+    })
+
+    it('ensure indices match value index in List', () => {
+      const { Enum, IndexByValue } = CreateBasicEnum();
+
+      expect(IndexByValue).toEqual({
+        [Enum.A]: 0,
+        [Enum.B]: 1,
+        [Enum.C]: 2
+      })
     })
   })
 })
