@@ -70,6 +70,20 @@ describe('CreateEnum', () => {
   });
 
   describe('Enum', () => {
+    it('return value has all properties even if not yet populated', () => {
+      const result = CreateBasicEnum();
+
+      expect(new Set(Object.keys(result))).toEqual(new Set([
+        'Enum',
+        'List',
+        'CreateOrdering',
+        'CreateSubset',
+        'CreateComplementSubset',
+        'TypeGuard',
+        'IndexByValue',
+      ]))
+    })
+
     it('accurately reflects names and values in config', () => {
       const { Enum } = CreateBasicEnum();
       
