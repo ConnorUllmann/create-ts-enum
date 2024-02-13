@@ -374,17 +374,16 @@ function CreateSubset<const ParentConfig extends EnumConfig, EnumValues extends 
 export function CreateEnum<const T extends EnumConfig & EnumConfigConstraint<T>>(
   ...enumConfig: T
 ): ConfigSubset<T, EnumConfigList<T>> {
-  const EnumSet = enumConfig.reduce((acc, configElement) => {
-    for (const key of Object.keys(configElement)) {
+  const List = enumConfig.reduce((acc, configElement) => {
+    const key = Object.keys(configElement)[0];
+    if(key != null) {
       const value = configElement[key]
       if(value != null) {
-        acc.add(value);
+        acc.push(value);
       }
     }
     return acc;
-  }, new Set<PropertyKey>());
-
-  const List = Array.from(EnumSet) as EnumConfigList<T>;
+  }, [] as PropertyKey[]) as EnumConfigList<T>;
 
   const NamesByValue = enumConfig.reduce((acc, configElement) => {
     for (const key of Object.keys(configElement)) {

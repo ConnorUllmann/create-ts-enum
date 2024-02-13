@@ -101,6 +101,15 @@ describe('CreateEnum', () => {
       const { Enum, List } = CreateBasicEnum();
       expect(List).toEqual([Enum.A, Enum.B, Enum.C])
     })
+
+    it('accurately reflects order of values in config even with aliases', () => {
+      const { Enum, List } = CreateEnum(
+        { A: 'a', A2: 'a' },
+        { B: 'b' },
+        { C: 'c', c: 'c' }
+      );
+      expect(List).toEqual([Enum.A, Enum.B, Enum.C])
+    })
   })
 
   describe('CreateSubset', () => {
@@ -902,7 +911,7 @@ describe('CreateEnum', () => {
         const { List } = CreateOrderingInner(Enum.C, Enum.A, Enum.B);
         expect(List).toEqual([Enum.C, Enum.A, Enum.B])
       })
-      
+
       it('can create full set in alternate order', () => {
         const { Enum, CreateOrdering } = CreateBasicEnum();
         const { CreateOrdering: CreateOrderingInner } = CreateOrdering(Enum.A, Enum.C, Enum.B);
