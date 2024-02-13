@@ -318,6 +318,70 @@ describe('CreateEnum', () => {
         expect(List).toEqual([Enum.B, Enum.A])
       })
     })
+
+    describe('TypeGuard', () => {
+      itTypes('validates to work correctly', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+      
+        const { Enum: EnumSubset, List, TypeGuard } = CreateSubset(Enum.A, Enum.C);
+        type EnumSubset = typeof List[number];
+  
+        // Validate that type guard narrows correctly
+        let x: string = '' as any;
+        if(TypeGuard(x)) {
+          const y: EnumSubset = x;
+          y; // "use" variable
+        }
+  
+        // @ts-expect-error Cannot pass a non-property-key to type guard
+        TypeGuard({})
+      })
+
+      it('can create type guard for full set in same order', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+      
+        const { TypeGuard } = CreateSubset(Enum.A, Enum.B, Enum.C);
+        expect(TypeGuard(Enum.A)).toEqual(true);
+        expect(TypeGuard(Enum.B)).toEqual(true);
+        expect(TypeGuard(Enum.C)).toEqual(true);
+      })
+
+      it('can create type guard for full set in alternate order', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+      
+        const { TypeGuard } = CreateSubset(Enum.A, Enum.C, Enum.B);
+        expect(TypeGuard(Enum.A)).toEqual(true);
+        expect(TypeGuard(Enum.B)).toEqual(true);
+        expect(TypeGuard(Enum.C)).toEqual(true);
+      })
+
+      it('can create type guard for partial subset', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+      
+        const { TypeGuard } = CreateSubset(Enum.A, Enum.C);
+        expect(TypeGuard(Enum.A)).toEqual(true);
+        expect(TypeGuard(Enum.B)).toEqual(false);
+        expect(TypeGuard(Enum.C)).toEqual(true);
+      })
+
+      it('can create type guard for singleton subset', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+      
+        const { TypeGuard } = CreateSubset(Enum.A);
+        expect(TypeGuard(Enum.A)).toEqual(true);
+        expect(TypeGuard(Enum.B)).toEqual(false);
+        expect(TypeGuard(Enum.C)).toEqual(false);
+      })
+
+      it('can create type guard for empty subset', () => {
+        const { Enum, CreateSubset } = CreateBasicEnum();
+      
+        const { TypeGuard } = CreateSubset();
+        expect(TypeGuard(Enum.A)).toEqual(false);
+        expect(TypeGuard(Enum.B)).toEqual(false);
+        expect(TypeGuard(Enum.C)).toEqual(false);
+      })
+    })
   })
 
   describe('CreateComplementSubset', () => {
@@ -391,12 +455,64 @@ describe('CreateEnum', () => {
       const { List } = CreateOrdering(Enum.A, Enum.B, Enum.C);
       expect(List).toEqual([Enum.A, Enum.B, Enum.C])
     })
-    
+
     it('can create full set in alternate order', () => {
       const { Enum, CreateOrdering } = CreateBasicEnum();
     
       const { List } = CreateOrdering(Enum.A, Enum.C, Enum.B);
       expect(List).toEqual([Enum.A, Enum.C, Enum.B])
+    })
+  })
+
+  describe('TypeGuard', () => {
+    itTypes('validates to work correctly', () => {
+      const { Enum, List, TypeGuard } = CreateBasicEnum();
+      type Enum = typeof List[number];
+
+      // Validate that type guard narrows correctly
+      let x: string = '' as any;
+      if(TypeGuard(x)) {
+        const y: Enum = x;
+        y; // "use" variable
+      }
+
+      // @ts-expect-error Cannot pass a non-property-key to type guard
+      TypeGuard({})
+    })
+
+    it('can create type guard for full set', () => {
+      const { Enum, TypeGuard } = CreateBasicEnum();
+
+      expect(TypeGuard(Enum.A)).toEqual(true);
+      expect(TypeGuard(Enum.B)).toEqual(true);
+      expect(TypeGuard(Enum.C)).toEqual(true);
+    })
+
+    it('can create type guard for partial subset', () => {
+      const { Enum, CreateSubset } = CreateBasicEnum();
+    
+      const { TypeGuard } = CreateSubset(Enum.A, Enum.C);
+      expect(TypeGuard(Enum.A)).toEqual(true);
+      expect(TypeGuard(Enum.B)).toEqual(false);
+      expect(TypeGuard(Enum.C)).toEqual(true);
+    })
+
+    it('can create type guard for singleton subset', () => {
+      const { Enum, CreateSubset } = CreateBasicEnum();
+    
+      const { TypeGuard } = CreateSubset(Enum.A);
+      expect(TypeGuard(Enum.A)).toEqual(true);
+      expect(TypeGuard(Enum.B)).toEqual(false);
+      expect(TypeGuard(Enum.C)).toEqual(false);
+    })
+
+    it('can create type guard for empty subset', () => {
+      const { Enum, CreateSubset } = CreateBasicEnum();
+    
+      const { TypeGuard } = CreateSubset();
+      expect(TypeGuard(Enum.A)).toEqual(false);
+      expect(TypeGuard(Enum.B)).toEqual(false);
+      expect(TypeGuard(Enum.C)).toEqual(false);
     })
   })
 })
