@@ -13,7 +13,7 @@ type RemoveMarkedElementsFromTuple<Tuple, Result extends readonly any[] = []> = 
   : [];
 
 /**
- * @description Given a tuple, returns a new tuple that removes all elements that extend the given union.
+ * @description Given a tuple, returns a new tuple that removes all elements that extend the given union while maintaining order.
  * @example ```typescript
  * type Tuple = ['a', 'b', 'c', 'd', 'e']
  * type Exclusion = 'b' | 'd';
