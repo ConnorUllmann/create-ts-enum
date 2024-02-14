@@ -46,21 +46,24 @@ type InvertedMapping<T> = T extends Record<PropertyKey, PropertyKey>
  * @param valueByMappingKey A mapping from the keys of mapping to the actual value for that key in the enum (since it being a key in mapping means it may have been coerced to a string).
  * @returns The inverse of the given mapping.
  */
-function invertMapping<T extends Record<PropertyKey, PropertyKey>>(mapping: T, valueByMappingKey: Record<PropertyKey, PropertyKey>): InvertedMapping<T> {
+function invertMapping<T extends Record<PropertyKey, PropertyKey>>(
+  mapping: T,
+  valueByMappingKey: Record<PropertyKey, PropertyKey>
+): InvertedMapping<T> {
   const invertedMapping = {} as Record<PropertyKey, PropertyKey>;
 
   const keys: (string | symbol)[] = Object.keys(mapping);
-  
+
   // Include symbol keys from the mapping as well
-  for(const symbol of Object.getOwnPropertySymbols(mapping)) {
+  for (const symbol of Object.getOwnPropertySymbols(mapping)) {
     keys.push(symbol);
   }
 
   for (const key of keys) {
-    const keyAsEnumValue = valueByMappingKey[key]
+    const keyAsEnumValue = valueByMappingKey[key];
     const value = mapping[key];
-    if(value != null && keyAsEnumValue != null) {
-      invertedMapping[value] = keyAsEnumValue
+    if (value != null && keyAsEnumValue != null) {
+      invertedMapping[value] = keyAsEnumValue;
     }
   }
   return invertedMapping as InvertedMapping<T>;
@@ -73,21 +76,21 @@ function invertMapping<T extends Record<PropertyKey, PropertyKey>>(mapping: T, v
  * @example ```typescript
  * const { Enum: Enum0, List: List0 } = CreateEnum({ A: 0 }, { B: 1 }, { C: 2 });
  * const { Enum: Enum1, List: List1 } = CreateEnum({ B: 'b' }, { C: 'c' }, { D: 'd' });
- * 
+ *
  * const { Mapping, InverseMapping } = EnumOneToOneMapper(List0, List1).Create({
  *   [Enum0.A]: Enum1.D,
  *   [Enum0.B]: Enum1.B,
  *   [Enum0.C]: Enum1.C
  * });
- * 
+ *
  * Mapping; // { 0: 'd', 1: 'b', 2: 'c' }
  * InverseMapping; // { d: 0, b: 1, c: 2 }
  * ```
  */
-export function EnumOneToOneMapper<
-  const A extends readonly PropertyKey[],
-  const B extends readonly PropertyKey[]
->(enumValuesA: A, _enumValuesB: AreTuplesSameLength<A, B> extends true ? B : never) {
+export function EnumOneToOneMapper<const A extends readonly PropertyKey[], const B extends readonly PropertyKey[]>(
+  enumValuesA: A,
+  _enumValuesB: AreTuplesSameLength<A, B> extends true ? B : never
+) {
   // Get a mapping from the object key form of each value in enumValuesA to its actual enum value.
   const enumValueByKeyA = enumValuesA.reduce((acc, value) => {
     acc[value] = value;

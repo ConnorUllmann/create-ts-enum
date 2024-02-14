@@ -24,7 +24,6 @@ type SubtractTuple<Tuple extends readonly any[], Union> = RemoveMarkedElementsFr
   MarkTupleElementsForRemoval<Tuple, Union>
 >;
 
-
 type EnumConfig = ReadonlyArray<Readonly<Record<string, PropertyKey>>>;
 
 /**
@@ -49,7 +48,7 @@ type InvertedEnumConfigMap<config extends EnumConfig> = MergeIntersections<
       };
     }[number]
   >
->
+>;
 
 /**
  * A name-to-value mapping filtered down to only match the given value union
@@ -221,7 +220,9 @@ type AnyKeyInUnion<Keys extends PropertyKey, Union extends PropertyKey> = {
 type EnumConfigIndexByValue<EnumValues extends ReadonlyArray<PropertyKey>> = MergeIntersections<
   UnionToIntersection<
     {
-      [index in keyof EnumValues]: { [enumValue in EnumValues[index]]: index extends `${infer indexNumber extends number}` ? indexNumber : never };
+      [index in keyof EnumValues]: {
+        [enumValue in EnumValues[index]]: index extends `${infer indexNumber extends number}` ? indexNumber : never;
+      };
     }[number]
   >
 >;
@@ -355,41 +356,58 @@ function CreateSubset<const ParentConfig extends EnumConfig, EnumValues extends 
   ...tuple: EnumValues
 ): ConfigSubset<ParentConfig, EnumValues> {
   const set = new Set<EnumValues[number]>(tuple);
-  return new Proxy<ConfigSubset<ParentConfig, EnumValues>>({
-    Enum: undefined,
-    List: undefined,
-    CreateOrdering: undefined,
-    CreateSubset: undefined,
-    CreateComplementSubset: undefined,
-    TypeGuard: undefined,
-    IndexByValue: undefined,
-  } as any, {
-    get(target: any, key: string | symbol) {
-      switch(key) {
-        case 'Enum': return target.Enum ??= tuple.reduce((acc, tupleValue: EnumValues[number]) => {
-          const names = (NamesByValue as Record<PropertyKey, string[]>)[tupleValue];
-          for (const name of names) {
-            acc[name] = tupleValue;
-          }
-          return acc;
-        }, {} as Record<string, PropertyKey>) as EnumConfigMapForValues<ParentConfig, EnumValues[number]>;
-        case 'List': return target.List ??= tuple;
-        case 'CreateOrdering': return target.CreateOrdering ??= <const Tuple extends readonly PropertyKey[]>(...tupleTemp: TupleOrdering<EnumValues, Tuple>) => CreateSubset<ParentConfig, Tuple>(NamesByValue, ...tupleTemp as Tuple);
-        case 'CreateSubset': return target.CreateSubset ??= <const Tuple extends readonly PropertyKey[]>(...tupleTemp: TupleSubset<EnumValues, Tuple>) => CreateSubset<ParentConfig, Tuple>(NamesByValue, ...tupleTemp as Tuple);
-        case 'CreateComplementSubset': return target.CreateComplementSubset ??= <const Tuple extends readonly PropertyKey[]>(..._tuple: TupleSubset<EnumValues, Tuple>) => {
-          const setTemp = new Set(_tuple);
-          const tupleComplement = tuple.filter(element => !setTemp.has(element));
-          return CreateSubset(NamesByValue, ...tupleComplement) as any;
-        };
-        case 'TypeGuard': return target.TypeGuard ??= (value: PropertyKey): value is EnumValues[number] => set.has(value);
-        case 'IndexByValue': return target.IndexByValue ??= tuple.reduce((acc, value: EnumValues[number], index) => {
-          acc[value] = index;
-          return acc;
-        }, {} as Record<PropertyKey, number>) as EnumConfigIndexByValue<EnumValues>;
-        default: return undefined;
-      }
+  return new Proxy<ConfigSubset<ParentConfig, EnumValues>>(
+    {
+      Enum: undefined,
+      List: undefined,
+      CreateOrdering: undefined,
+      CreateSubset: undefined,
+      CreateComplementSubset: undefined,
+      TypeGuard: undefined,
+      IndexByValue: undefined,
+    } as any,
+    {
+      get(target: any, key: string | symbol) {
+        switch (key) {
+          case 'Enum':
+            return (target.Enum ??= tuple.reduce((acc, tupleValue: EnumValues[number]) => {
+              const names = (NamesByValue as Record<PropertyKey, string[]>)[tupleValue];
+              for (const name of names) {
+                acc[name] = tupleValue;
+              }
+              return acc;
+            }, {} as Record<string, PropertyKey>) as EnumConfigMapForValues<ParentConfig, EnumValues[number]>);
+          case 'List':
+            return (target.List ??= tuple);
+          case 'CreateOrdering':
+            return (target.CreateOrdering ??= <const Tuple extends readonly PropertyKey[]>(
+              ...tupleTemp: TupleOrdering<EnumValues, Tuple>
+            ) => CreateSubset<ParentConfig, Tuple>(NamesByValue, ...(tupleTemp as Tuple)));
+          case 'CreateSubset':
+            return (target.CreateSubset ??= <const Tuple extends readonly PropertyKey[]>(
+              ...tupleTemp: TupleSubset<EnumValues, Tuple>
+            ) => CreateSubset<ParentConfig, Tuple>(NamesByValue, ...(tupleTemp as Tuple)));
+          case 'CreateComplementSubset':
+            return (target.CreateComplementSubset ??= <const Tuple extends readonly PropertyKey[]>(
+              ..._tuple: TupleSubset<EnumValues, Tuple>
+            ) => {
+              const setTemp = new Set(_tuple);
+              const tupleComplement = tuple.filter(element => !setTemp.has(element));
+              return CreateSubset(NamesByValue, ...tupleComplement) as any;
+            });
+          case 'TypeGuard':
+            return (target.TypeGuard ??= (value: PropertyKey): value is EnumValues[number] => set.has(value));
+          case 'IndexByValue':
+            return (target.IndexByValue ??= tuple.reduce((acc, value: EnumValues[number], index) => {
+              acc[value] = index;
+              return acc;
+            }, {} as Record<PropertyKey, number>) as EnumConfigIndexByValue<EnumValues>);
+          default:
+            return undefined;
+        }
+      },
     }
-  })
+  );
 }
 
 /**
@@ -412,9 +430,9 @@ export function CreateEnum<const T extends EnumConfig & EnumConfigConstraint<T>>
 ): ConfigSubset<T, EnumConfigList<T>> {
   const List = enumConfig.reduce((acc, configElement) => {
     const key = Object.keys(configElement)[0];
-    if(key != null) {
-      const value = configElement[key]
-      if(value != null) {
+    if (key != null) {
+      const value = configElement[key];
+      if (value != null) {
         acc.push(value);
       }
     }
@@ -424,7 +442,7 @@ export function CreateEnum<const T extends EnumConfig & EnumConfigConstraint<T>>
   const NamesByValue = enumConfig.reduce((acc, configElement) => {
     for (const key of Object.keys(configElement)) {
       const value = configElement[key];
-      if(value != null) {
+      if (value != null) {
         (acc[value] ??= []).push(key);
       }
     }
