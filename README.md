@@ -1,7 +1,7 @@
 # create-ts-enum
- A utility for making type-safe, ordered, set-oriented enums in TypeScript.
+ A utility for making type-safe, ordered, set-oriented enums in TypeScript. This package primarily contains two functions, `CreateEnum` and `EnumOneToOneMapper`.
 
-# CreateEnum
+## CreateEnum
 
 `CreateEnum` is a function that is used to generate an enum and corresponding type-safe utilities from a configuration.
 ```typescript
@@ -14,7 +14,7 @@ const { Enum: Color } = CreateEnum(
 const color = Color.Red; // 'r'
 ```
 
-These utilities include an ordered list of elements, a type-guard, a mapping from each value to its index in the list, and various functions for making subsets and reorderings. The major advantage of this approach is its type-safety; the type of every value returned is known exactly at compile-time.
+These utilities include an ordered list of elements, a type-guard, a mapping from each value to its index in the ordered list, and functions for making subsets and reorderings. The major advantage of this approach is its type-safety; the type of every value returned is known exactly at compile-time.
 ```typescript
 const {
   Enum,
@@ -30,6 +30,9 @@ const {
   { Blue: 'b' },
 );
 ```
+TypeScript enums can have inferred values, their order and number of entries aren't known to the type system, and number-based enums have the peculiar property where their keys are values and their values are also keys. These utilities are meant to allow for type-safe enums that avoid these issues and manage common operations without code duplication.
+
+### CreateSubset & CreateComplementSubset
 
 The `CreateSubset` & `CreateComplementSubset` functions can be used in a type-safe way to declare relationships between different values of an enum:
 ```typescript
@@ -81,6 +84,8 @@ NonCatMammals;             // ['wolf', 'bear']
 NonCatMammalsIndexByValue; // { wolf: 0, bear: 1 }
 ```
 
+### CreateOrdering
+
 The `CreateOrdering` is the same as `CreateSubset` except you must specify all elements of the enum, but you can specify them in a new order.
 ```typescript
 const {
@@ -114,7 +119,24 @@ const { List: HueColors } = CreateColorOrdering(
 );
 ```
 
-Declaring multiple names for the same value is supported, as is any combination of `string`, `number`, and `symbol` values.
+### TypeGuard
+The `TypeGuard` method ensures that any value is a part of the enum or subset it is derived from.
+```typescript
+const { TypeGuard: isColor } = CreateEnum(
+  { Red: 'r' },
+  { Green: 'g' },
+  { Blue: 'b' },
+);
+
+const fn = (x: any) => {
+  if(isColor(x)) {
+    // x is 'r' | 'g' | 'b'
+  }
+}
+```
+
+### Other Information
+Declaring multiple aliases for the same value is supported as long as they are in the same object as other names with the same value. Additionally, any combination of `string`, `number`, and `symbol` values are allowed.
 ```typescript
 const blueSymbol = Symbol('blue');
 
@@ -124,16 +146,35 @@ const { Enum: Color } = CreateEnum(
   { Blue: blueSymbol },
 );
 ```
+It is recommended that the result is destructured and its properties renamed to match your enum. As in these examples, the `Enum` property is best given as a singular form, while `List` is its plural form.
 
-It is recommended to export a type containing the union of values in your enum, like so:
+It is also recommended to export a type containing the union of values in your enum under the same name, as is done automatically for TypeScript's enums.
 ```typescript
-const { Enum: Color, List: Colors } = CreateEnum(...);
+const {
+  Enum: Color,
+  List: Colors
+} = CreateEnum(...);
+
 type Color = (typeof Colors)[number];
 
 function getRandomColor(): Color { ... }
 ```
+Each subset will output a new `Enum` property which will use the same names and values as in the set that it is derived from, only it will be filtered down to the values allowed by that subset. This allows for subsets to also be named, as below.
+```typescript
+const { Enum: LivingBeing } = CreateEnum(
+  { Wolf: 'wolf' },
+  { Bear: 'bear' },
+  { Tree: 'tree' },
+  { Grass: 'grass' },
+);
 
-# EnumOneToOneMapper
+const { Enum: Plant, List: Plants } = CreateLivingBeingSubset(LivingBeing.Tree, LivingBeing.Grass);
+
+LivingBeing.Tree === Plant.Tree; // Plant.Tree exists because it is a part of the Plant subset
+LivingBeing.Wolf !== Plant.Wolf; // Plant.Wolf does not exist!
+```
+
+## EnumOneToOneMapper
 
 `EnumOneToOneMapper` is a curried function that ensures exact 1:1 matching between two enums. It can be called as follows to retrieve the validated mapping and its inverse.
 ```typescript
