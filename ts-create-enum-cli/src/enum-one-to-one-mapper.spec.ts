@@ -1,4 +1,4 @@
-import { CreateEnum, EnumOneToOneMapper } from "@cullmann/create-ts-enum";
+import { CreateEnum, EnumOneToOneMapper } from "ts-create-enum";
 import { itTypes } from "./type-tests";
 
 describe('EnumOneToOneMapper (numbers)', () => {

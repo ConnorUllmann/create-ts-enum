@@ -4,7 +4,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@cullmann/create-ts-enum": "file:../create-ts-enum"
+    "ts-create-enum": "file:../ts-create-enum"
   },
   "devDependencies": {
     "@babel/core": "^7.23.9",

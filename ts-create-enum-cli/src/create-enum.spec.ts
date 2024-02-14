@@ -1,4 +1,4 @@
-import { CreateEnum } from '@cullmann/create-ts-enum';
+import { CreateEnum } from 'ts-create-enum';
 import { itTypes } from './type-tests';
 
 const symbolA = Symbol('a')

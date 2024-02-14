@@ -1,4 +1,4 @@
-# create-ts-enum
+# ts-create-enum
  A utility for making type-safe, ordered, set-oriented enums in TypeScript. This package primarily contains two functions, `CreateEnum` and `EnumOneToOneMapper`.
 
 ## CreateEnum
