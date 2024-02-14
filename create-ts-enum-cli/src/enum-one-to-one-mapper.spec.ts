@@ -156,6 +156,15 @@ describe('EnumOneToOneMapper (strings)', () => {
       [Test1.B]: Test2.B,
       [Test1.C]: Test2.C,
     });
+
+    mapper.Create({
+      //@ts-expect-error Cannot map to non-property-key value
+      [Test1.A]: [Test2.D],
+      //@ts-expect-error Cannot map to non-property-key value
+      [Test1.B]: [Test2.B],
+      //@ts-expect-error Cannot map to non-property-key value
+      [Test1.C]: [Test2.C],
+    })
   })
 
   it('can create a mapping successfully', () => {

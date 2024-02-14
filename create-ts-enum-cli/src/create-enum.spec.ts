@@ -40,6 +40,15 @@ function runTestsForValues(testName: string, a: 'a' | 0 | typeof symbolA, b: 'b'
         )
       })
 
+      itTypes('no match keys in different entries with other elements', () => {
+        CreateEnum(
+          //@ts-expect-error Can't have the same key in two different entries with other elements around
+          { A: coreMapping.A },
+          { A: coreMapping.B },
+          { C: coreMapping.C },
+        );
+      })
+
       itTypes('no matching keys in different entries', () => {
         CreateEnum(
           //@ts-expect-error Can't have the same key in two different entries

@@ -99,7 +99,7 @@ export function EnumOneToOneMapper<
      * @param mapping A mapping from the values in curried enum A to the values in curried enum B.
      * @returns An object containing the mapping and its inverse.
      */
-    Create: <const T>(
+    Create: <const T extends Record<PropertyKey, PropertyKey>>(
       mapping: T & Result<A[number], B[number], T>
     ): {
       Mapping: T;

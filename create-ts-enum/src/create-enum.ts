@@ -203,7 +203,7 @@ type RemoveDuplicateKeys<
 > = Tuple extends Readonly<[...infer Rest, infer Last]>
   ? AnyKeyInUnion<keyof Last, { [K in keyof Rest]: keyof Rest[K] }[number]> extends true
     ? Readonly<[...Rest, ReplaceValue, ...Suffix]>
-    : RemoveDuplicateSingleValueObject<Rest, ReplaceValue, [Last, ...Suffix]>
+    : RemoveDuplicateKeys<Rest, ReplaceValue, [Last, ...Suffix]>
   : Readonly<[...Tuple, ...Suffix]>;
 
 /**
