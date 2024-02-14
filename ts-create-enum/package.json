@@ -1,8 +1,22 @@
 {
   "name": "ts-create-enum",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "keywords": [
+    "typescript",
+    "ts",
+    "enum",
+    "map",
+    "mapping",
+    "const",
+    "types",
+    "safe",
+    "match",
+    "set",
+    "order",
+    "list"
+  ],
   "scripts": {
     "build": "tsc"
   },
