@@ -1,6 +1,6 @@
 {
   "name": "ts-create-enum",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "keywords": [
@@ -18,7 +18,9 @@
     "list"
   ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "pack": "npm pack --dry-run",
+    "publish": "npm publish --access public"
   },
   "devDependencies": {
     "typescript": "^5.3.3"

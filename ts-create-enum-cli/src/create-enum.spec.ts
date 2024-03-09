@@ -1,6 +1,13 @@
 import { CreateEnum } from 'ts-create-enum';
 import { itTypes } from './type-tests';
 
+// Type test to ensure that recursive methods can be exported without type recursion errors
+export const {
+  CreateSubset: CreateTempSubset,
+  CreateComplementSubset: CreateTempComplementSubset,
+  CreateOrdering: CreateTempOrdering,
+} = CreateEnum({ A: 'a' }, { B: 'b' });
+
 const symbolA = Symbol('a');
 const symbolB = Symbol('b');
 const symbolC = Symbol('c');
@@ -653,8 +660,8 @@ function runTestsForValues(
           //@ts-expect-error Unrecognized entry but all other values present
           CreateOrdering(Enum.C, unrecognizedValue);
           CreateOrdering(
-            //@ts-expect-error Too many entries at correct index
             Enum.C,
+            //@ts-expect-error Too many entries at correct index
             Enum.C,
             Enum.C,
             Enum.C,

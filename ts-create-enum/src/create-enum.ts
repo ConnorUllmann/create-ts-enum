@@ -1,13 +1,11 @@
-const removeElementSymbol = Symbol();
-
 type MarkTupleElementsForRemoval<T, U> = {
-  [K in keyof T]: T[K] extends U ? typeof removeElementSymbol : T[K];
+  [K in keyof T]: T[K] extends U ? never : T[K];
 };
 
 type RemoveMarkedElementsFromTuple<Tuple, Result extends readonly any[] = []> = Tuple extends readonly []
   ? Result
   : Tuple extends readonly [infer First, ...infer Rest]
-  ? First extends typeof removeElementSymbol
+  ? [First] extends [never]
     ? RemoveMarkedElementsFromTuple<Rest, Result>
     : RemoveMarkedElementsFromTuple<Rest, [...Result, First]>
   : [];
@@ -257,7 +255,7 @@ type EnumConfigTypeGuard<EnumValues extends ReadonlyArray<PropertyKey>> = (
   value: PropertyKey
 ) => value is EnumValues[number];
 
-type ConfigSubset<ParentConfig extends EnumConfig, EnumValues extends readonly PropertyKey[]> = {
+export interface ConfigSubset<ParentConfig extends EnumConfig, EnumValues extends readonly PropertyKey[]> {
   /**
    * @description An object mapping each name to each value in the enum.
    * @example ```typescript
